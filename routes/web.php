@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     // return view('welcome');
-    $user = new User;
-    dd($user::all());
 });
 
 // Route::get('/browse_movies/', [MovieController::class, 'show']);

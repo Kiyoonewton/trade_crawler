@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('mongodb')->create('users', function ($collection) {
+        Schema::connection('mongodb')->create('matches', function ($collection) {
             $collection->index('uuid', ['unique' => true]);
         });
     }
@@ -21,6 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('matches');
     }
 };

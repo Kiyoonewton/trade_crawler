@@ -1,20 +1,22 @@
 #### queries
 type Query {
-    oneMatchDay(uuid: ID! @eq): MatchDay @find
-    allMatchDay: [MatchDay!]! @all
+    oneSeason(seasonId: ID! @eq): Season @find
+    allSeason: [Season!]! @all
 }
 
 #### mutations
 type Mutation {
-    createMatchDay(seasonId: ID!): MatchDay
-        @field(
-            resolver: "App\\GraphQL\\Mutations\\MatchDayMutation@create"
-        )
+    createSeason(seasonId: ID!): Season
+        @field(resolver: "App\\GraphQL\\Mutations\\SeasonMutation@createSeason")
 }
 
 #### data types
+type Season {
+    seasonId: String!
+    matchDays: [MatchDay!]!
+}
+
 type MatchDay {
-    uuid:ID!
     queryUrl: String!
     doc: [Doc!]!
 }

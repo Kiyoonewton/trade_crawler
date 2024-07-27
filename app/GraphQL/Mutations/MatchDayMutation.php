@@ -2,17 +2,24 @@
 
 namespace App\GraphQL\Mutations;
 
-use App\Models\MatchDay;
+use App\Models\Season;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Http;
 
-class MatchDayMutation
+class CreateMatchDayJob implements ShouldQueue
 {
-    public function create($root, array $args)
-    {
-        $uuid = $args['seasonId'];
-        $apiUrl = "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$uuid/24";
+    private $seasonId;
+    private $matchDayNumber;
 
-        // Fetch data from the API
+    public function __construct(string $seasonId, int $matchDayNumber)
+    {
+        $this->seasonId = $seasonId;
+        $this->matchDayNumber = $matchDayNumber;
+    }
+    public function handle()
+    {
+        $apiUrl = "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$this->matchDayNumber";
+
         $response = Http::get($apiUrl);
         if ($response->failed()) {
             throw new \Exception('Failed to fetch data from the external API');
@@ -20,12 +27,8 @@ class MatchDayMutation
 
         $data = $response->json();
 
-        // Parse the API response and map it to the MatchDay model structure
-        $matchDay = new MatchDay();
-        $matchDay->queryUrl = $data['queryUrl'];
-        $matchDay->doc = $data['doc'];
-        $matchDay->save();
-
-        return $matchDay;
+        $season = Season::find($this->seasonId);
+        $season->matchDays[] = $data;
+        $season->save();
     }
 }

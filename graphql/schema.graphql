@@ -6,63 +6,68 @@ type Query {
 
 #### mutations
 type Mutation {
-    createSeason(seasonId: ID!): Season
+    createSeason(seasonId: ID!): Seasoninput
         @field(resolver: "App\\GraphQL\\Mutations\\SeasonMutation@createSeason")
 }
 
 #### data types
+type Seasoninput {
+    seasonId: String!
+}
+
+
 type Season {
     seasonId: String!
-    matchDays: [MatchDay!]!
+    matchDays: [MatchDay]
 }
 
 type MatchDay {
-    queryUrl: String!
-    doc: [Doc!]!
+    queryUrl: String
+    doc: [Doc]
 }
 
 type Doc {
-    timestamp: String!
-    data: Data!
+    timestamp: String
+    data: Data
 }
 
 type Data {
-    odds: [Odd!]!
+    odds: [Odd]
 }
 
 type Odd {
-    id: String!
-    sport_id: String!
-    tournament_id: String!
-    teams: Teams!
-    market: [Market!]!
+    id: String
+    sport_id: String
+    tournament_id: String
+    teams: Teams
+    market: [Market]
 }
 
 type Teams {
-    home: Team!
-    away: Team!
+    home: Team
+    away: Team
 }
 
 type Team {
-    id: String!
-    name: String!
-    abbr: String!
+    id: String
+    name: String
+    abbr: String
 }
 
 type Market {
-    id: Int!
-    name: String!
-    status: Int!
-    outcome: [Outcome!]!
+    id: Int
+    name: String
+    status: Int
+    outcome: [Outcome]
 }
 
 type Outcome {
-    abbr: String!
-    active: Int!
-    id: String!
-    name: String!
-    odds: String!
-    result: Int!
+    abbr: String
+    active: Int
+    id: String
+    name: String
+    odds: String
+    result: Int
 }
 
 #### inputs

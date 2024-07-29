@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('mongodb')->create('matches', function ($collection) {
-            $collection->index('uuid', ['unique' => true]);
+        Schema::connection('mongodb')->create('seasons', function ($collection) {
+            // $collection->index('uuid', ['unique' => true]);
         });
     }
 

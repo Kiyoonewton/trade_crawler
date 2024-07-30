@@ -40,7 +40,7 @@ type Odd {
     sport_id: String
     tournament_id: String
     teams: Teams
-    market: [Market]
+    market: [Market] @hasMany @eq(key: "id", value: "1")
 }
 
 type Teams {
@@ -58,7 +58,7 @@ type Market {
     id: Int
     name: String
     status: Int
-    outcome: [Outcome]
+    outcome: [Outcome] 
 }
 
 type Outcome {

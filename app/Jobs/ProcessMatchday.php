@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Season;
+use App\Services\FilterMatchdayData;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -32,6 +33,9 @@ class ProcessMatchday implements ShouldQueue
             throw new \Exception('Cannot fetch data from the api');
         }
         $data = $response->json();
+
+        $filterMatchdayDataService = new FilterMatchdayData();
+        $data = $filterMatchdayDataService->getFilteredMatchday($data);
         $season = Season::find($this->seasonId);
         $matchDays = $season->matchDays ?? [];
         $matchDays[] = $data;

@@ -1,4 +1,6 @@
-#### queries
+scalar Timestamp @scalar(class: "App\\GraphQL\\Scalars\\Timestamp")
+
+### queries
 type Query {
     oneSeason(seasonId: ID! @eq): Season @find
     allSeason: [Season!]! @all
@@ -6,15 +8,14 @@ type Query {
 
 #### mutations
 type Mutation {
-    createSeason(seasonId: ID!): Seasoninput
+    createSeason(seasonId: ID!): SeasonInput
         @field(resolver: "App\\GraphQL\\Mutations\\SeasonMutation@createSeason")
 }
 
 #### data types
-type Seasoninput {
+type SeasonInput {
     seasonId: String!
 }
-
 
 type Season {
     seasonId: String!
@@ -23,49 +24,34 @@ type Season {
 
 type MatchDay {
     queryUrl: String
-    doc: [Doc]
-}
-
-type Doc {
-    timestamp: String
-    data: Data
-}
-
-type Data {
-    odds: [Odd]
-}
-
-type Odd {
-    id: String
-    sport_id: String
-    tournament_id: String
-    teams: Teams
-    market: [Market] @hasMany @eq(key: "id", value: "1")
-}
-
-type Teams {
-    home: Team
-    away: Team
-}
-
-type Team {
-    id: String
-    name: String
-    abbr: String
-}
-
-type Market {
-    id: Int
-    name: String
-    status: Int
-    outcome: [Outcome] 
+    timestamp: Timestamp
+    outcome: [Outcome]
 }
 
 type Outcome {
-    abbr: String
-    active: Int
-    id: String
-    name: String
+    home: String
+    away: String
+    market: Market
+}
+
+type Market {
+    winordraw: [WinorDraw]
+    total: [Total]
+}
+
+type WinorDraw {
+    type: String
+    odds: String
+    result: Int
+}
+
+type Total {
+    type: String
+    over: TotalOdd
+    under: TotalOdd
+}
+
+type TotalOdd {
     odds: String
     result: Int
 }

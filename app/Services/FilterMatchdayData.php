@@ -21,19 +21,23 @@ class FilterMatchdayData
                 })
                 ->map(function ($marketOdd) {
                     return [
-                        "home" => [
+                        [
+                            "type" => "home",
                             "odds" => $marketOdd["outcome"][0]["odds"],
                             "result" => $marketOdd["outcome"][0]["result"]
-                        ], "draw" => [
+                        ],
+                        [
+                            "type" => "draw",
                             "odds" => $marketOdd["outcome"][1]["odds"],
                             "result" => $marketOdd["outcome"][1]["result"]
-                        ], "away" => [
+                        ],
+                        [
+                            "type" => "away",
                             "odds" => $marketOdd["outcome"][2]["odds"],
                             "result" => $marketOdd["outcome"][2]["result"]
                         ]
                     ];
-                })->values()
-                ->all();
+                })->values()->all();
 
             $total = $marketCol->filter(function ($marketOdd) {
                 return $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=0.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=1.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=2.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=3.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=4.5";
@@ -41,13 +45,10 @@ class FilterMatchdayData
                 $key = explode("=",  $marketType["specifiers"]);
                 $key = array_map('trim',  $key);
 
-                return [
-                    $key[1] => ["over" => ["odds" => $marketType["outcome"][0]["odds"], "result" => $marketType["outcome"][0]["result"]], "under" => ["odds" => $marketType["outcome"][1]["odds"], "result" => $marketType["outcome"][1]["result"]]]
-                ];
+                return ["type" => $key[1], "over" => ["odds" => $marketType["outcome"][0]["odds"], "result" => $marketType["outcome"][0]["result"]], "under" => ["odds" => $marketType["outcome"][1]["odds"], "result" => $marketType["outcome"][1]["result"]]];
             })->values()->all();
-
-            return ["home" => $odd["teams"]["home"]["name"], "away" => $odd["teams"]["away"]["name"], "market" => ["winOrdraw" => $WinOrDraw, "total" => $total]];
-        })->all();
+            return ["home" => $odd["teams"]["home"]["name"], "away" => $odd["teams"]["away"]["name"], "market" => ["winordraw" => $WinOrDraw, "total" => $total]];
+        })->values()->all();
 
         return [
             "queryUrl" => $matchday["queryUrl"],

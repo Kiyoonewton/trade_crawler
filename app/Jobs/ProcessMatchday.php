@@ -35,10 +35,10 @@ class ProcessMatchday implements ShouldQueue
         $data = $response->json();
 
         $filterMatchdayDataService = new FilterMatchdayData();
-        $data = $filterMatchdayDataService->getFilteredMatchday($data);
+        $filtered_data = $filterMatchdayDataService->getFilteredMatchday($data);
         $season = Season::find($this->seasonId);
         $matchDays = $season->matchDays ?? [];
-        $matchDays[] = $data;
+        $matchDays[$this->matchdayNumber] = $filtered_data;
         $season->matchDays = $matchDays;
         $season->save();
     }

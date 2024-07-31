@@ -13,7 +13,7 @@ class SeasonMutation
         if (!Season::find($seasonId)) {
             Season::create(['seasonId' => $seasonId, 'matchDays' => []]);
         }
-        for ($i = 2; $i <= 5; $i++) {
+        for ($i = 1; $i <= 30; $i++) {
             dispatch(new ProcessMatchday($seasonId, $i));
         }
         return ['seasonId' => $seasonId];

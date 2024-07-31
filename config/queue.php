@@ -86,8 +86,9 @@ return [
     */
 
     'batching' => [
-        'database' => env('DB_CONNECTION', 'sqlite'),
-        'table' => 'job_batches',
+        'driver' => 'mongodb',
+        'database' => 'mongodb',
+        'collection' => 'job_batches',
     ],
 
     /*
@@ -104,9 +105,9 @@ return [
     */
 
     'failed' => [
-        'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'sqlite'),
-        'table' => 'failed_jobs',
+        'driver' => 'mongodb',
+        'database' => 'mongodb',
+        'collection' => 'failed_jobs',
     ],
 
 ];

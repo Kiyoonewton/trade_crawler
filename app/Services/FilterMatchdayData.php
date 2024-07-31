@@ -15,27 +15,22 @@ class FilterMatchdayData
         $team = $odds->map(function ($odd) {
             $marketCol = collect($odd["market"]);
 
-            $WinOrDraw = $marketCol
+            $WinOrDraw = collect($marketCol
                 ->filter(function ($marketOdd) {
                     return $marketOdd["id"] === 1;
-                })
+                })->values()->first()['outcome'])
                 ->map(function ($marketOdd) {
+                    if ($marketOdd["id"] === "1") {
+                        $type = "home";
+                    } elseif ($marketOdd["id"] === "2") {
+                        $type = "draw";
+                    } else {
+                        $type = "away";
+                    }
                     return [
-                        [
-                            "type" => "home",
-                            "odds" => $marketOdd["outcome"][0]["odds"],
-                            "result" => $marketOdd["outcome"][0]["result"]
-                        ],
-                        [
-                            "type" => "draw",
-                            "odds" => $marketOdd["outcome"][1]["odds"],
-                            "result" => $marketOdd["outcome"][1]["result"]
-                        ],
-                        [
-                            "type" => "away",
-                            "odds" => $marketOdd["outcome"][2]["odds"],
-                            "result" => $marketOdd["outcome"][2]["result"]
-                        ]
+                        "type" => $type,
+                        "odds" => $marketOdd["odds"],
+                        "result" => $marketOdd["result"]
                     ];
                 })->values()->all();
 

@@ -23,6 +23,7 @@ type Season {
 }
 
 type MatchDay {
+    index: Int
     queryUrl: String
     timestamp: Timestamp
     outcome: [Outcome]
@@ -32,6 +33,14 @@ type Outcome {
     home: String
     away: String
     market: Market
+}
+
+type Team {
+    name: String
+    score: String
+    points: Int
+    goalFor: Int
+    goalAgainst: Int
 }
 
 type Market {

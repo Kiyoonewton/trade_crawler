@@ -5,7 +5,7 @@ namespace App\Services;
 class FilterMatchdayData
 {
 
-    public function getFilteredMatchday($matchday)
+    public function getFilteredMatchday($matchday, int $matchdayNumber)
     {
         // $path = storage_path('App/Data/data.json');
         // $json = file_get_contents($path);
@@ -46,6 +46,7 @@ class FilterMatchdayData
         })->values()->all();
 
         return [
+            "index" => $matchdayNumber,
             "queryUrl" => $matchday["queryUrl"],
             "timestamp" => $doc["timestamp"],
             "outcome" => $team

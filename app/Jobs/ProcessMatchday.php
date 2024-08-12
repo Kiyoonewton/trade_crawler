@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Season;
-use App\Services\FilterMatchdayData;
+use App\Services\MatchdayDataClass;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,29 +18,41 @@ class ProcessMatchday implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public array $prevPoint = [];
+    public array $datas = [];
     public function __construct(public string $seasonId, public int $matchdayNumber)
     {
     }
     /**
      * Execute the job.
      */
-    public function handle()
+    public function handle(): bool
     {
-        $apiUrl = "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$this->matchdayNumber";
-        $response = Http::get($apiUrl);
-        if ($response->failed()) {
-            throw new \Exception('Cannot fetch data from the api');
-        }
-        $apiUrl2 = "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/2858982/1/15";
-        $data = $response->json();
+        $apiUrls = [
+            "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$this->matchdayNumber", "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/$this->seasonId/1/15"
+        ];
 
-        $filterMatchdayDataService = new FilterMatchdayData();
-        $filtered_data = $filterMatchdayDataService->getFilteredMatchday($data, $this->matchdayNumber);
+        foreach ($apiUrls as $apiUrl) {
+            $response = Http::get($apiUrl);
+            if ($response->failed()) {
+                throw new \Exception('Cannot fetch data from the api');
+            }
+            array_push($datas, $response->json());
+        }
+
+        $filterMatchdayDataService = new MatchdayDataClass($datas[0], $this->matchdayNumber, $datas[1]);
+        $filteredWinOrDrawData = $filterMatchdayDataService->getWinOrDrawMatchday();
+        $filteredOverOrUnder = $filterMatchdayDataService->getOverOrUnderMatchday();
+        // if (conditionmet) {
+        //     false;
+        // };
         $season = Season::find($this->seasonId);
-        $matchDays = $season->matchDays ?? [];
-        $matchDays[$this->matchdayNumber] = $filtered_data;
-        $season->matchDays = $matchDays;
+        $winordraw = $season->winordraw ?? [];
+        $overorunder = $season->overorunder ?? [];
+        $winordraw[$this->matchdayNumber] = $filteredWinOrDrawData;
+        $overorunder[$this->matchdayNumber] = $filteredOverOrUnder;
+        $season->overorunder = $overorunder;
+        $season->winordraw = $winordraw;
         $season->save();
+        return true;
     }
 }

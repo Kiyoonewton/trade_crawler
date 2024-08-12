@@ -10,12 +10,15 @@ class Season extends Model
     use HasFactory;
     protected $connection = 'mongodb';
     protected $collection = 'seasons';
-    protected $primaryKey = 'seasonId';
-    public $incrementing = false;
-    protected $keyType = 'string';
-    protected $fillable = ['seasonId', 'matchDays'];
+    protected $fillable = ['seasonId'];
 
-    protected $casts = [
-        'matchDays' => 'array',
-    ];
+    public function winOrDrawMarket()
+    {
+        return $this->hasMany(WinOrDrawMarket::class, 'season_id', '_id');
+    }
+
+    public function overOrUnderMarket()
+    {
+        return $this->hasMany(OverOrUnderMarket::class, 'season_id', '_id');
+    }
 }

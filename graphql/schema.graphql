@@ -24,8 +24,7 @@ type Season {
 
 type MatchDay {
     index: Int
-    queryUrl: String
-    timestamp: Timestamp
+    queryUrl: String 
     outcome: [Outcome]
 }
 

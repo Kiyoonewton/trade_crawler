@@ -8,12 +8,17 @@ use MongoDB\Laravel\Eloquent\Model;
 class OverOrUnderMarket extends Model
 {
     use HasFactory;
-    protected $collection ='overOrUnderMarket';
+    protected $connection = 'mongodb';
+    protected $collection = 'over_or_under';
 
-    protected $fillable = ['matchday','user_id'];
+    protected $fillable = ['season_id', 'market'];
+
+    // protected $cast = [
+    //     'market' => 'array',
+    // ];
 
     public function season()
     {
-        return $this->belongsTo(Season::class, 'user_id','_id');
+        return $this->belongsTo(Season::class, 'season_id');
     }
 }

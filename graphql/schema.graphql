@@ -9,7 +9,6 @@ type Query {
 #### mutations
 type Mutation {
     createSeason(seasonId: ID!): SeasonInput
-        @field(resolver: "App\\GraphQL\\Mutations\\SeasonMutation@createSeason")
 }
 
 #### data types

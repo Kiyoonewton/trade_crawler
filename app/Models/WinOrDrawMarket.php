@@ -9,12 +9,17 @@ class WinOrDrawMarket extends Model
 {
     use HasFactory;
 
-    protected $collection ='winOrDrawMarket';
+    protected $connection = 'mongodb';
+    protected $collection ='win_or_draw';
 
-    protected $fillable = ['matchday','user_id'];
+    protected $fillable = ['season_id','matchday'];
+
+    // protected $cast = [
+    //     'market' => 'array',
+    // ];
 
     public function season()
     {
-        return $this->belongsTo(Season::class, 'user_id','_id');
+        return $this->belongsTo(Season::class, 'season_id');
     }
 }

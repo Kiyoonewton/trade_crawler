@@ -18,17 +18,21 @@ class ProcessMatchday implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public array $datas = [];
-    public function __construct(public string $seasonId, public int $matchdayNumber)
-    {
+    public array $data;
+    public int $previousMatchDay;
+    public function __construct(public string $seasonId, public int $matchdayNumber) {
+        $this->data = [];
+        $this->previousMatchDay = $matchdayNumber - 1;
+
     }
     /**
      * Execute the job.
      */
-    public function handle(): bool
+    public function handle()
     {
         $apiUrls = [
-            "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$this->matchdayNumber", "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/$this->seasonId/1/15"
+            "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$this->matchdayNumber",
+            "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/$this->seasonId/1/$this->previousMatchDay"
         ];
 
         foreach ($apiUrls as $apiUrl) {
@@ -36,23 +40,24 @@ class ProcessMatchday implements ShouldQueue
             if ($response->failed()) {
                 throw new \Exception('Cannot fetch data from the api');
             }
-            array_push($datas, $response->json());
+            array_push($this->data, $response->json());
         }
 
-        $filterMatchdayDataService = new MatchdayDataClass($datas[0], $this->matchdayNumber, $datas[1]);
+        $filterMatchdayDataService = new MatchdayDataClass($this->data, $this->matchdayNumber);
         $filteredWinOrDrawData = $filterMatchdayDataService->getWinOrDrawMatchday();
         $filteredOverOrUnder = $filterMatchdayDataService->getOverOrUnderMatchday();
         // if (conditionmet) {
         //     false;
         // };
-        $season = Season::find($this->seasonId);
-        $winordraw = $season->winordraw ?? [];
-        $overorunder = $season->overorunder ?? [];
-        $winordraw[$this->matchdayNumber] = $filteredWinOrDrawData;
-        $overorunder[$this->matchdayNumber] = $filteredOverOrUnder;
-        $season->overorunder = $overorunder;
-        $season->winordraw = $winordraw;
-        $season->save();
-        return true;
+        // $season = Season::find($this->seasonId);
+        // $winordraw = $season->winordraw ?? [];
+        // $overorunder = $season->overorunder ?? [];
+        $winordraw = $filteredWinOrDrawData;
+        // $overorunder = $filteredOverOrUnder;
+        // $season->overorunder = $overorunder;
+        // $season->winordraw = $winordraw;
+        // $season->save();
+        return $winordraw;
+        // return true;
     }
 }

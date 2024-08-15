@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Season;
+use App\Models\WinOrDrawMarket;
 use App\Services\MatchdayDataClass;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ProcessMatchday implements ShouldQueue
 {
@@ -19,45 +20,57 @@ class ProcessMatchday implements ShouldQueue
      * Create a new job instance.
      */
     public array $data;
-    public int $previousMatchDay;
-    public function __construct(public string $seasonId, public int $matchdayNumber) {
+    public string $firstWin = 'loss';
+    public string $secondWin = 'loss';
+    public function __construct(public string $seasonId)
+    {
         $this->data = [];
-        $this->previousMatchDay = $matchdayNumber - 1;
-
     }
     /**
      * Execute the job.
      */
     public function handle()
     {
-        $apiUrls = [
-            "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$this->matchdayNumber",
-            "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/$this->seasonId/1/$this->previousMatchDay"
-        ];
+        for ($i = 26; $i <= 30; $i++) {
+            $data = [];
+            Log::info("log something", [$i]);
+            $apiUrls = [
+                "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$i",
+                "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/$this->seasonId/1/" . ($i - 1)
+            ];
 
-        foreach ($apiUrls as $apiUrl) {
-            $response = Http::get($apiUrl);
-            if ($response->failed()) {
-                throw new \Exception('Cannot fetch data from the api');
+            foreach ($apiUrls as $apiUrl) {
+                $response = Http::get($apiUrl);
+                if ($response->failed()) {
+                    throw new \Exception('Cannot fetch data from the api');
+                }
+                array_push($data, $response->json());
             }
-            array_push($this->data, $response->json());
-        }
 
-        $filterMatchdayDataService = new MatchdayDataClass($this->data, $this->matchdayNumber);
-        $filteredWinOrDrawData = $filterMatchdayDataService->getWinOrDrawMatchday();
-        $filteredOverOrUnder = $filterMatchdayDataService->getOverOrUnderMatchday();
-        // if (conditionmet) {
-        //     false;
-        // };
-        // $season = Season::find($this->seasonId);
-        // $winordraw = $season->winordraw ?? [];
-        // $overorunder = $season->overorunder ?? [];
-        $winordraw = $filteredWinOrDrawData;
-        // $overorunder = $filteredOverOrUnder;
-        // $season->overorunder = $overorunder;
-        // $season->winordraw = $winordraw;
-        // $season->save();
-        return $winordraw;
-        // return true;
+            if ($this->firstWin === 'loss') {
+                $existing = WinOrDrawMarket::where([
+                    ['season_id', '=', $this->seasonId],
+                    ['market_id', '=', $i],
+                ])->first();
+                if ($existing) return;
+                $filterMatchdayDataService = new MatchdayDataClass($data, $i);
+                $filteredWinOrDrawData = $filterMatchdayDataService->getWinOrDrawMatchday();
+                $winordraw = $filteredWinOrDrawData;
+                $this->firstWin = $filteredWinOrDrawData['outcome'];
+                WinOrDrawMarket::create([...$winordraw, 'season_id' => $this->seasonId, 'matchday_id' => $i]);
+            }
+
+            // if ($this->secondWin === 'loss') {
+            //     $filterMatchdayDataService = new MatchdayDataClass($this->data, $i);
+            //     // $filteredOverOrUnder = $filterMatchdayDataService->getOverOrUnderMatchday();
+            //     // $overorunder = $filteredOverOrUnder;
+            //     // OverOrUnderMarket::create([]);
+            //     return $filterMatchdayDataService;
+            // }
+
+            if ($this->firstWin === 'win' && $this->secondWin === 'win') {
+                break;
+            }
+        }
     }
 }

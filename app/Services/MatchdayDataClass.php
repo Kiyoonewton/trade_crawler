@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class MatchdayDataClass
 {
     protected $matchday;
@@ -13,6 +15,7 @@ class MatchdayDataClass
     protected $doc;
     protected $odds;
 
+    // public function __construct()
     public function __construct(mixed $data, int $matchdayNumber)
     {
         // $path = storage_path('App/Data/data.json');
@@ -26,6 +29,7 @@ class MatchdayDataClass
         // $json2 = file_get_contents($path2);
         // $this->matchdayDetails = json_decode($json2, true);
         $this->matchdayDetails = $data[1];
+        Log::info("log something",$this->matchdayDetails);
         $this->rawDatas = $this->matchdayDetails["doc"][0]["data"]["tables"][0]["tablerows"];
 
         $this->pointsTotal = ["pointsTotal" => $this->rawDatas[0]["pointsTotal"], "teamName" => $this->rawDatas[0]["team"]["name"]];
@@ -68,37 +72,29 @@ class MatchdayDataClass
             return $filterPrediction['name'] === $this->pointsTotal["teamName"];
         }))->keys()->first();
 
-        $prediction = (collect($WinOrDraw)->filter(function ($filterPrediction) use ($homeOrAway) {
+        $outcome = (collect($WinOrDraw)->filter(function ($filterPrediction) use ($homeOrAway) {
             return $filterPrediction['type'] === $homeOrAway;
-        }))->values()->first()['result'] === 1 ? "win" : "loss";;
+        }))->values()->first()['result'] === 1 ? "win" : "loss";
 
-        return ["queryUrl" => $this->matchday["queryUrl"], "home" => $odd["teams"]["home"]["name"], "away" => $odd["teams"]["away"]["name"], "market" => $WinOrDraw, "prediction" => $prediction, "team"=>$this->pointsTotal["teamName"]];
+        return ["queryUrl" => $this->matchday["queryUrl"], "home" => $odd["teams"]["home"]["name"], "away" => $odd["teams"]["away"]["name"], "market" => $WinOrDraw, "outcome" => $outcome, "prediction" => $this->pointsTotal["teamName"]];
     }
-    //     return [
-    //         // "index" => $matchdayNumber,
-    //         "queryUrl" => $this->matchday["queryUrl"],
-    //         "timestamp" => $this->doc["timestamp"],
-    //         "outcome" => $team
-    //     ];
-    // }
 
-    // 3 ["2863795", "2863820","2863846","2863872","2863899","2863920","2863951","2863975","2864001"]
-    // 7 ["2863805", "2863782","2863833","2863857","2863883","2863906","2863933","2863959","2863989"]
-    // 8 ["2863794", "2863819","2863845","2863871","2863898","2863919","2863950","2863974","2864000"]
-
+    // 3 ["2863795", "2863820","2863846","2863872","2863899","2863920",first-5"2863951" 5,"2863975","2864001","2864025", 2864050]
+    // 7 ["2863805", "2863782","2863833","2863857","2863883" 5,"2863906","2863933","2863959","2863989","2864011", ]
+    // 8 ["2863794", "2863819","2863845","2863871" 4,"2863898"broken,"2863919","2863950","2863974","2864000","2864024"]
+    // ["1.65","1.55","2.85","1.60","2.15"]
     public function getOverOrUnderMatchday()
     {
         $highestGoalTeam = $this->highestGoal['teamName'];
         $odd = $this->filterMarketByTeam($highestGoalTeam);
-        $total = collect(collect($odd["market"])->filter(function ($marketOdd) {
-            return $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=0.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=1.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=2.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=3.5" || $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=4.5";
+        $total = (collect(collect($odd["market"])->filter(function ($marketOdd) {
+            return $marketOdd["id"] === 18 && $marketOdd["specifiers"] === "total=2.5";
         }))->map(function ($marketType) {
             $key = explode("=",  $marketType["specifiers"]);
             $key = array_map('trim',  $key);
 
-            return ["type" => $key[1], "over" => ["odds" => $marketType["outcome"][0]["odds"], "result" => $marketType["outcome"][0]["result"]], "under" => ["odds" => $marketType["outcome"][1]["odds"], "result" => $marketType["outcome"][1]["result"]]];
-        })->values()->all();
-
-        return ["queryUrl" => $this->matchday["queryUrl"], 'odd' => $total, 'prediction' => $total[1]['over']['result'] === 1 ? 'over' : 'under'];
+            return ["market" => [['type' => 'over', "odds" => $marketType["outcome"][0]["odds"], "result" => $marketType["outcome"][0]["result"]], ['type' => 'under', "odds" => $marketType["outcome"][1]["odds"], "result" => $marketType["outcome"][1]["result"]]]];
+        }))->first();
+        return ["queryUrl" => $this->matchday["queryUrl"], 'prediction' => 'Over2.5', "home" => $odd["teams"]["home"]["name"], "away" => $odd["teams"]["away"]["name"], ...$total, 'outcome' => $total['market'][0]['result'] === 1 ? 'win' : 'loss'];
     }
 }

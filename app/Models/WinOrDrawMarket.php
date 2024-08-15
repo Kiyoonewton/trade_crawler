@@ -10,13 +10,9 @@ class WinOrDrawMarket extends Model
     use HasFactory;
 
     protected $connection = 'mongodb';
-    protected $collection ='win_or_draw';
+    protected $collection = 'win_or_draw';
 
-    protected $fillable = ['season_id','matchday'];
-
-    // protected $cast = [
-    //     'market' => 'array',
-    // ];
+    protected $fillable = ['season_id', 'matchday_id', 'queryUrl', 'home', 'away', 'market', 'outcome', 'prediction'];
 
     public function season()
     {

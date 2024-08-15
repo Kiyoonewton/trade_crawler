@@ -11,11 +11,7 @@ class OverOrUnderMarket extends Model
     protected $connection = 'mongodb';
     protected $collection = 'over_or_under';
 
-    protected $fillable = ['season_id', 'market'];
-
-    // protected $cast = [
-    //     'market' => 'array',
-    // ];
+    protected $fillable = ['season_id', 'matchday_id', 'queryUrl', 'home', 'away', 'market', 'outcome', 'prediction'];
 
     public function season()
     {

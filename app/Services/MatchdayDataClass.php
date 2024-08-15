@@ -29,7 +29,6 @@ class MatchdayDataClass
         // $json2 = file_get_contents($path2);
         // $this->matchdayDetails = json_decode($json2, true);
         $this->matchdayDetails = $data[1];
-        Log::info("log something",$this->matchdayDetails);
         $this->rawDatas = $this->matchdayDetails["doc"][0]["data"]["tables"][0]["tablerows"];
 
         $this->pointsTotal = ["pointsTotal" => $this->rawDatas[0]["pointsTotal"], "teamName" => $this->rawDatas[0]["team"]["name"]];

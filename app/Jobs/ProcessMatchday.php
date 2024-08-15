@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\OverOrUnderMarket;
 use App\Models\WinOrDrawMarket;
 use App\Services\MatchdayDataClass;
 use Illuminate\Bus\Queueable;
@@ -10,7 +11,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class ProcessMatchday implements ShouldQueue
 {
@@ -19,13 +19,9 @@ class ProcessMatchday implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public array $data;
     public string $firstWin = 'loss';
     public string $secondWin = 'loss';
-    public function __construct(public string $seasonId)
-    {
-        $this->data = [];
-    }
+    public function __construct(public string $seasonId) {}
     /**
      * Execute the job.
      */
@@ -33,7 +29,6 @@ class ProcessMatchday implements ShouldQueue
     {
         for ($i = 26; $i <= 30; $i++) {
             $data = [];
-            Log::info("log something", [$i]);
             $apiUrls = [
                 "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$i",
                 "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/$this->seasonId/1/" . ($i - 1)
@@ -50,23 +45,29 @@ class ProcessMatchday implements ShouldQueue
             if ($this->firstWin === 'loss') {
                 $existing = WinOrDrawMarket::where([
                     ['season_id', '=', $this->seasonId],
-                    ['market_id', '=', $i],
+                    ['matchday_id', '=', $i],
                 ])->first();
-                if ($existing) return;
                 $filterMatchdayDataService = new MatchdayDataClass($data, $i);
                 $filteredWinOrDrawData = $filterMatchdayDataService->getWinOrDrawMatchday();
-                $winordraw = $filteredWinOrDrawData;
                 $this->firstWin = $filteredWinOrDrawData['outcome'];
-                WinOrDrawMarket::create([...$winordraw, 'season_id' => $this->seasonId, 'matchday_id' => $i]);
+
+                if (!$existing) {
+                    WinOrDrawMarket::create([...$filteredWinOrDrawData, 'season_id' => $this->seasonId, 'matchday_id' => $i]);
+                }
             }
 
-            // if ($this->secondWin === 'loss') {
-            //     $filterMatchdayDataService = new MatchdayDataClass($this->data, $i);
-            //     // $filteredOverOrUnder = $filterMatchdayDataService->getOverOrUnderMatchday();
-            //     // $overorunder = $filteredOverOrUnder;
-            //     // OverOrUnderMarket::create([]);
-            //     return $filterMatchdayDataService;
-            // }
+            if ($this->secondWin === 'loss') {
+                $existing = OverOrUnderMarket::where([
+                    ['season_id', '=', $this->seasonId],
+                    ['matchday_id', '=', $i],
+                ])->first();
+                $filterMatchdayDataService = new MatchdayDataClass($data, $i);
+                $filteredOverOrUnder = $filterMatchdayDataService->getOverOrUnderMatchday();
+                $this->secondWin = $filteredOverOrUnder['outcome'];
+                if (!$existing) {
+                    OverOrUnderMarket::create([...$filteredOverOrUnder, 'season_id' => $this->seasonId, 'matchday_id' => $i]);
+                }
+            }
 
             if ($this->firstWin === 'win' && $this->secondWin === 'win') {
                 break;

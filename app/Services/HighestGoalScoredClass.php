@@ -2,10 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Log;
-use React\Promise\Deferred;
-
-
 class HighestGoalScoredClass
 {
     protected $highestGoal;

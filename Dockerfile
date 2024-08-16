@@ -15,9 +15,17 @@ RUN apt-get update && apt-get install -y \
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
 
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    libcurl4-openssl-dev \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb
+
 WORKDIR /var/www/html
 
 COPY . /var/www/html
+
+RUN chmod +x /var/www/html/artisan
 
 RUN composer install
 

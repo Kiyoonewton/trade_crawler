@@ -19,9 +19,15 @@ class ProcessMatchday implements ShouldQueue
     /**
      * Create a new job instance.
      */
+    private string $main_data_url = "";
+    private string $table_url = "";
     public string $firstWin = 'loss';
     public string $secondWin = 'loss';
-    public function __construct(public string $seasonId) {}
+    public function __construct(public string $seasonId)
+    {
+        $this->main_data_url = getenv('MAIN_DATA_URL');
+        $this->table_url = getenv('TABLE_URL');
+    }
     /**
      * Execute the job.
      */
@@ -30,8 +36,8 @@ class ProcessMatchday implements ShouldQueue
         for ($i = 26; $i <= 30; $i++) {
             $data = [];
             $apiUrls = [
-                "https://vgls.betradar.com/vfl/feeds/?/bet9ja/en/Europe:Berlin/gismo/vfc_stats_round_odds2/vf:season:$this->seasonId/$i",
-                "https://vgls.betradar.com/vfl/feeds/?/bet9javirtuals/en/Europe:Berlin/gismo/stats_season_tables/$this->seasonId/1/" . ($i - 1)
+                "$this->main_data_url:$this->seasonId/$i",
+                "$this->table_url/$this->seasonId/1/" . ($i - 1)
             ];
 
             foreach ($apiUrls as $apiUrl) {

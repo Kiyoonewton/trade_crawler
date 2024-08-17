@@ -12,7 +12,7 @@ class CreateSeason
         $seasonId = $args['seasonId'];
         $season = Season::where('seasonId', $seasonId)->first();
         if (!$season) {
-            Season::create(['seasonId' => $seasonId]);
+            Season::create(['seasonId' => $seasonId, 'type' => ($args['vflId'] === 3) ? 'VFLM' : (($args['vflId'] === 7) ? 'VFEL' : 'VFB')]);
         }
         dispatch(new ProcessMatchday($seasonId));
         return ['season_id' => $seasonId];

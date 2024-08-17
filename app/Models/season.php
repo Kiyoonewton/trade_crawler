@@ -13,7 +13,7 @@ class Season extends Model
     protected $primaryKey = 'seasonId';
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $fillable = ['seasonId'];
+    protected $fillable = ['seasonId', 'type'];
 
     public function winOrDrawMarket()
     {

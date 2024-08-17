@@ -33,14 +33,25 @@ return [
 
         'mongodb' => [
             'driver' => 'mongodb',
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', 27017),
+            'host' => env('APP_ENV') === 'production'
+                ? env('DB_HOST', '127.0.0.1')
+                : null,
+            'port' => env('APP_ENV') === 'production'
+                ? env('DB_PORT', 27017)
+                : null,
             'database' => env('DB_DATABASE'),
-            'username' => env('DB_USERNAME'),
-            'password' => env('DB_PASSWORD'),
-            'options' => [
+            'username' => env('APP_ENV') === 'production'
+                ? env('DB_USERNAME')
+                : null,
+            'password' => env('APP_ENV') === 'production'
+                ? env('DB_PASSWORD')
+                : null,
+            'dsn' => env('APP_ENV') !== 'production'
+                ? env('DB_DSN')
+                : null,
+            'options' => env('APP_ENV') !== 'production' ? [
                 'database' => env('DB_AUTHENTICATION_DATABASE', 'admin'),
-            ],
+            ] : null,
         ],
 
         'sqlite' => [

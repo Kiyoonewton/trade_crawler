@@ -9,7 +9,7 @@ type Query {
 
 #### mutations
 type Mutation {
-    createSeason(seasonId: ID!): CreateSeasonOutput
+    createSeason(seasonId: ID!, vflId: Int!): CreateSeasonOutput
 }
 
 type CreateSeasonOutput {
@@ -37,4 +37,3 @@ type Market {
     odds: String
     result: Int
 }
-
